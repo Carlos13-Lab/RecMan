@@ -1,4 +1,4 @@
-import { categoryTile, filterIngredients, isLowStock, stockPercent, validateIngredient, type Ingredient } from "./inventory";
+import { categoryTile, filterIngredients, isLowStock, parseDecimal, stockPercent, validateIngredient, type Ingredient } from "./inventory";
 
 const ing = (o: Partial<Ingredient>): Ingredient => ({ id: "1", name: "Harina", unit: "kg", priceUsd: "2.5000", currentStock: "10", minStock: "5", category: null, ...o });
 
@@ -64,4 +64,13 @@ describe("validateIngredient", () => {
     expect(Object.keys(e).sort()).toEqual(["currentStock", "minStock", "name", "priceUsd", "unit"]);
     expect(e.priceUsd).toBe("El precio debe ser mayor que 0");
   });
+});
+
+describe("parseDecimal", () => {
+  it("accepts plain decimals with comma or dot", () => {
+    expect(parseDecimal("0,5")).toBe(0.5);
+    expect(parseDecimal("12.25")).toBe(12.25);
+    expect(parseDecimal(" 3 ")).toBe(3);
+  });
+  it.each(["1.000,5", "1,000.5", "1,5,3", "1e3", "abc", "", "0,12345", "123456789", "Infinity", "0x10"])("rejects %j", (s) => expect(parseDecimal(s)).toBeNaN());
 });

@@ -17,7 +17,7 @@ export function stockPercent(current: number, min: number): number {
   return Math.min(Math.max((current / (min * 2)) * 100, 0), 100);
 }
 
-const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+export const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
 export function filterIngredients(list: Ingredient[], search: string, filter: CategoryFilter): Ingredient[] {
   const q = fold(search);
@@ -49,7 +49,8 @@ export function categoryTile(category: string | null, name = ""): { colors: read
 }
 
 // Accepts "1,5" or "1.5"; empty or garbage -> NaN.
-export const parseDecimal = (s: string) => (s.trim() === "" ? NaN : Number(s.trim().replace(",", ".")));
+// Plain decimals only (numeric(12,4)); anything else is NaN.
+export const parseDecimal = (s: string) => (/^\d{1,8}([.,]\d{1,4})?$/.test(s.trim()) ? Number(s.trim().replace(",", ".")) : NaN);
 
 export type FormValues = { name: string; unit: string; priceUsd: string; currentStock: string; minStock: string };
 export type FormErrors = Partial<Record<keyof FormValues, string>>;
