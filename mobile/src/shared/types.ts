@@ -1,3 +1,5 @@
+import type { Ingredient } from "../features/inventory/inventory";
+
 export type Money = { usd: number; bs: number };
 
 // GET /api/dashboard/metrics (computed fields: numbers, unrounded)
@@ -30,8 +32,15 @@ export type Recipe = {
   name: string;
   category: string | null;
   imageUrl?: string | null; // relative path; see resolveImageUrl
+  description?: string | null;
+  notes?: string | null;
+  baseServings: number;
+  profitPercentage: string;
+  costUsd: number;
+  costBs: number;
   priceUsd: number;
   priceBs: number;
+  ingredients: { id: string; quantity: string; ingredient: Ingredient }[];
 };
 
 export type AppNotification = {
