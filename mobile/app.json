@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "RecMan",
+    "slug": "recman",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#6366F1",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.recman.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#141022",
+          "imageWidth": 160
+        }
+      ],
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "RecMan usa la cámara para fotografiar tus recetas.",
+          "photosPermission": "RecMan accede a tus fotos para elegir la imagen de tus recetas.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-image"
+    ],
+    "scheme": "recman",
+    "backgroundColor": "#141022"
+  }
+}
