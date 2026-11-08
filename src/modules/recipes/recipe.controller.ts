@@ -1,3 +1,5 @@
+import { promises as fs } from "fs";
+import path from "path";
 import { Request, Response } from "express";
 import { AppDataSource } from "../../config/data-source";
 import { Recipe } from "./recipe.entity";
@@ -7,6 +9,19 @@ import { CreateRecipeDto, UpdateRecipeDto } from "./recipe.schema";
 import { AppError } from "../../shared/errors/AppError";
 import { ExchangeRateService } from "../../shared/services/exchangeRate.service";
 import { calculateRecipePricing } from "../../shared/utils/recipe.utils";
+
+// ponytail: local disk storage; move to S3/Cloudinary when deploying to containers or multiple instances
+export const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
+const RECIPE_IMAGE_DIR = path.join(UPLOAD_DIR, "recipes");
+export const IMAGE_EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+// The multer mimetype is client-declared, so confirm the real file signature too.
+function sniffExt(b: Buffer): string | null {
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "png";
+  if (b.length > 12 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") return "webp";
+  return null;
+}
 
 const recipeRepository = AppDataSource.getRepository(Recipe);
 const recipeIngredientRepository = AppDataSource.getRepository(RecipeIngredient);
@@ -286,6 +301,45 @@ export class RecipeController {
     }
   }
 
+  static async uploadImage(req: Request, res: Response) {
+    const userId = req.userId as string;
+    const { id } = req.params;
+    const file = req.file;
+    if (!file) throw new AppError("Image file is required (field \"image\")", 400);
+    const ext = sniffExt(file.buffer);
+    if (!ext || ext !== IMAGE_EXT[file.mimetype]) {
+      throw new AppError("Only jpeg, png or webp images are allowed", 400);
+    }
+
+    const recipe = await recipeRepository.findOne({ where: { id, userId } });
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+    const filename = `${id}-${Date.now()}.${ext}`;
+    await fs.mkdir(RECIPE_IMAGE_DIR, { recursive: true });
+    await fs.writeFile(path.join(RECIPE_IMAGE_DIR, filename), file.buffer);
+
+    const previous = recipe.imageUrl;
+    recipe.imageUrl = `/uploads/recipes/${filename}`;
+    try {
+      await recipeRepository.save(recipe);
+    } catch (err) {
+      await fs.rm(path.join(RECIPE_IMAGE_DIR, filename), { force: true });
+      throw err;
+    }
+    // basename: never delete outside the recipes folder, whatever is stored in the column.
+    if (previous) await fs.rm(path.join(RECIPE_IMAGE_DIR, path.basename(previous)), { force: true });
+
+    const full = await recipeRepository.findOneOrFail({
+      where: { id, userId },
+      relations: ["ingredients", "ingredients.ingredient"]
+    });
+    const mapped = mapRecipeWithPricing(
+      full as Recipe & { ingredients: (RecipeIngredient & { ingredient: Ingredient })[] }
+    );
+    const rate = await ExchangeRateService.getExchangeRate();
+    return res.json({ ...mapped, costBs: mapped.costUsd * rate, priceBs: mapped.priceUsd * rate });
+  }
+
   static async remove(req: Request, res: Response) {
     const userId = req.userId as string;
     const { id } = req.params;
@@ -295,7 +349,10 @@ export class RecipeController {
       return res.status(404).json({ message: "Recipe not found" });
     }
 
+    const image = recipe.imageUrl;
+    // Remove the file only after the row is gone: removal fails (FK RESTRICT) when sales reference the recipe.
     await recipeRepository.remove(recipe);
+    if (image) await fs.rm(path.join(RECIPE_IMAGE_DIR, path.basename(image)), { force: true });
     return res.status(204).send();
   }
 }

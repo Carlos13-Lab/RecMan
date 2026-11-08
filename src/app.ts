@@ -8,6 +8,7 @@ import { loggerMiddleware } from "./shared/middlewares/logger.middleware";
 import authRoutes from "./modules/auth/auth.routes";
 import ingredientRoutes from "./modules/ingredients/ingredient.routes";
 import recipeRoutes from "./modules/recipes/recipe.routes";
+import { UPLOAD_DIR } from "./modules/recipes/recipe.controller";
 import saleRoutes from "./modules/sales/sale.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import calendarRoutes from "./modules/calendar/calendar.routes";
@@ -25,6 +26,10 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok", app: "RecMan API" });
 });
 
+app.use("/uploads", (_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  next();
+}, express.static(UPLOAD_DIR, { index: false }));
 app.use("/api/auth", authRoutes);
 app.use("/api/ingredients", ingredientRoutes);
 app.use("/api/recipes", recipeRoutes);

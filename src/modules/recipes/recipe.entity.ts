@@ -46,6 +46,10 @@ export class Recipe {
   @Column({ type: "text", nullable: true })
   notes!: string | null;
 
+  // Relative path ("/uploads/recipes/<file>"); clients prefix it with the API origin.
+  @Column({ name: "image_url", type: "varchar", length: 255, nullable: true })
+  imageUrl!: string | null;
+
   @OneToMany(() => RecipeIngredient, (ri) => ri.recipe)
   ingredients!: RecipeIngredient[];
 
