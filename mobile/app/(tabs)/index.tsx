@@ -9,7 +9,7 @@ import { NotificationsSheet } from "../../src/features/notifications/Notificatio
 import { useDay, useNotifications, useRange, useTodayMetrics } from "../../src/features/home/queries";
 import { buildDailySeries, buildHourlySeries } from "../../src/features/home/series";
 import { TrendChart } from "../../src/features/home/TrendChart";
-import { localDateString } from "../../src/shared/dates";
+import { capitalize, localDateString, localTime } from "../../src/shared/dates";
 import { formatBs, formatPercent, formatUsd, toNumber } from "../../src/shared/money";
 import { AnimatedBar } from "../../src/ui/AnimatedBar";
 import { CountUp } from "../../src/ui/CountUp";
@@ -51,8 +51,6 @@ function greeting(d: Date) {
   return h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
 }
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-const hhmm = (iso: string) => new Date(iso).toLocaleTimeString("es-VE", { hour: "2-digit", minute: "2-digit", hour12: false });
 
 type Mode = "daily" | "weekly";
 
@@ -104,7 +102,7 @@ export default function Home() {
           <MaterialIcons name="restaurant" size={20} color="#fff" />
         </LinearGradient>
         <View style={{ flex: 1 }}>
-          <Text style={styles.date}>{cap(now.toLocaleDateString("es-VE", { weekday: "long", day: "numeric", month: "short" }))}</Text>
+          <Text style={styles.date}>{capitalize(now.toLocaleDateString("es-VE", { weekday: "long", day: "numeric", month: "short" }))}</Text>
           <Text style={styles.appTitle}>RecMan</Text>
         </View>
         <Press haptic onPress={() => setBellOpen(true)} accessibilityRole="button" accessibilityLabel={`Notificaciones, ${unread} sin leer`} style={styles.bell}>
@@ -193,7 +191,7 @@ export default function Home() {
 
         <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>Ventas de hoy</Text>
-          <Press onPress={() => router.navigate("/sales")} accessibilityRole="link" style={styles.viewAll}>
+          <Press onPress={() => router.navigate({ pathname: "/sales", params: { date: today, t: String(Date.now()) } })} accessibilityRole="link" style={styles.viewAll}>
             <Text style={styles.link}>Ver todo</Text>
             <MaterialIcons name="chevron-right" size={20} color={colors.primary} />
           </Press>
@@ -218,7 +216,7 @@ export default function Home() {
               )}
               <View style={styles.saleInfo}>
                 <Text style={styles.saleName} numberOfLines={1}>{s.recipe?.name ?? "Receta eliminada"}</Text>
-                <Text style={styles.saleQty}>{s.recipe?.category ? `${s.recipe.category} • ` : ""}{s.quantity} {s.quantity === 1 ? "porción" : "porciones"} • {hhmm(s.createdAt)}</Text>
+                <Text style={styles.saleQty}>{s.recipe?.category ? `${s.recipe.category} • ` : ""}{s.quantity} {s.quantity === 1 ? "porción" : "porciones"} • {localTime(s.createdAt)}</Text>
               </View>
               <View style={styles.saleTotals}>
                 <Text style={styles.saleUsd}>{formatUsd(s.totalUsd)}</Text>

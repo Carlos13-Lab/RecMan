@@ -21,7 +21,7 @@ export type CalendarSale = {
   totalUsd: string;
   totalBs: string;
   createdAt: string; // ISO
-  recipe?: { id: string; name: string; category: string | null; imageUrl?: string | null } | null;
+  recipe?: { id: string; name: string; category: string | null; imageUrl?: string | null; profitPercentage?: string } | null;
 };
 export type CalendarRange = { from: string; to: string; sales: CalendarSale[] };
 export type CalendarDay = { date: string; sales: CalendarSale[] };

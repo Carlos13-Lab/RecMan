@@ -1,4 +1,4 @@
-import { localDateString } from "./dates";
+import { isIsoDate, localDateString } from "./dates";
 
 describe("localDateString", () => {
   it("formats local calendar parts as YYYY-MM-DD with zero padding", () => {
@@ -12,5 +12,15 @@ describe("localDateString", () => {
 
   it("uses the local date right after midnight", () => {
     expect(localDateString(new Date(2026, 11, 31, 0, 0, 1))).toBe("2026-12-31");
+  });
+});
+
+describe("isIsoDate", () => {
+  it("accepts real calendar dates", () => {
+    expect(isIsoDate("2026-11-08")).toBe(true);
+    expect(isIsoDate("2028-02-29")).toBe(true);
+  });
+  it.each(["2026-13-45", "2026-02-30", "2026-02-29", "foo", "2026-1-5", "2026-11-08T00:00", "", undefined, null, 20261108, ["2026-11-08"]])("rejects %p", (v) => {
+    expect(isIsoDate(v)).toBe(false);
   });
 });
