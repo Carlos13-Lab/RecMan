@@ -1,4 +1,6 @@
 import express from "express";
+// Express 4 ignores rejected promises from async handlers; without this, a thrown AppError crashes the process.
+import "express-async-errors";
 import cors from "cors";
 import { json } from "body-parser";
 import { errorHandler } from "./shared/errors/error-handler";
