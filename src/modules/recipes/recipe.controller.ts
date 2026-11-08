@@ -228,7 +228,8 @@ export class RecipeController {
         recipe.description = body.description ?? null;
       if (body.profitPercentage !== undefined)
         recipe.profitPercentage = body.profitPercentage.toString();
-      if (body.category !== undefined) recipe.category = body.category ?? null;
+      if (body.category !== undefined)
+        recipe.category = body.category?.trim() || null;
       if (body.baseServings !== undefined)
         recipe.baseServings = body.baseServings;
       if (body.notes !== undefined) recipe.notes = body.notes ?? null;
